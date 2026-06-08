@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"site-watcher/models"
 	"site-watcher/repository"
+	"time"
 )
 
 // структура хранит в себе инструмент для работы с БД
@@ -35,6 +36,7 @@ func (c *SiteController) CreateSiteHandler(w http.ResponseWriter, r *http.Reques
 	if site.IntervalSeconds <= 0 {
 		site.IntervalSeconds = 60
 	}
+	site.CreatedAt = time.Now()
 
 	err = c.repositoryHandler.CreateSite(&site)
 	if err != nil {
