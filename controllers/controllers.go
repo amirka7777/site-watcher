@@ -50,3 +50,17 @@ func (c *SiteController) CreateSiteHandler(w http.ResponseWriter, r *http.Reques
 
 
 }
+
+func (c *SiteController) GetSitesHandler(w http.ResponseWriter, r *http.Request) {
+
+	sites, err := c.repositoryHandler.GetAllSites()
+	if err != nil {
+		http.Error(w, "Ошибка при взятии информации о сайтах из Базы данных", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(sites)
+
+}
