@@ -5,7 +5,9 @@ import (
 	"net/http"
 	"site-watcher/controllers"
 	"site-watcher/database"
+	"site-watcher/models"
 	"site-watcher/repository"
+	"site-watcher/worker"
 )
 
 
@@ -19,7 +21,11 @@ func main() {
 	defer db.Close()
 
 	siteRepo := repository.NewSiteRepository(db)
-	siteContr := controllers.NewSiteController(siteRepo)
+	sharedSiteChannel := make(chan models.Site)
+	siteContr := controllers.NewSiteController(siteRepo, sharedSiteChannel)
+
+	siteWorker := worker.NewWorker(siteRepo, sharedSiteChannel)
+	go siteWorker.Start()
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /sites", siteContr.CreateSiteHandler)

@@ -12,10 +12,11 @@ import (
 // структура хранит в себе инструмент для работы с БД
 type SiteController struct {
 	repositoryHandler repository.SiteRepository
+	siteChannel chan models.Site
 }
 
-func NewSiteController(repo repository.SiteRepository) *SiteController {
-	return &SiteController{repositoryHandler: repo}
+func NewSiteController(repo repository.SiteRepository, ch chan models.Site) *SiteController {
+	return &SiteController{repositoryHandler: repo, siteChannel: ch}
 }
 
 func (c *SiteController) CreateSiteHandler(w http.ResponseWriter, r *http.Request) {
@@ -43,6 +44,8 @@ func (c *SiteController) CreateSiteHandler(w http.ResponseWriter, r *http.Reques
 		http.Error(w, "Ошибка при записи сайта в базу данных", http.StatusInternalServerError)
 		return
 	}
+
+	c.siteChannel <- site
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)

@@ -37,7 +37,7 @@ func migrate(db *sql.DB) error {
 
 	createTableSiteSQlite := `CREATE TABLE IF NOT EXISTS sites (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    url TEXT NOT NULL,
+    url TEXT NOT NULL UNIQUE,
     interval_seconds INTEGER NOT NULL DEFAULT 60,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);`
