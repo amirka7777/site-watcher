@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"fmt"
 	"site-watcher/models"
 )
 
@@ -9,6 +10,7 @@ import (
 type SiteRepository interface {
 	CreateSite(site *models.Site) error
 	GetAllSites() ([]models.Site, error)
+	SaveLog(log *models.CheckLog) error
 } 
 
 type SQLiteSiteRepository struct {
@@ -56,5 +58,17 @@ func (r *SQLiteSiteRepository) GetAllSites() ([]models.Site ,error) {
 	}
 
 	return allSites, err
+
+}
+
+func (r *SQLiteSiteRepository) SaveLog(log *models.CheckLog) error {
+
+	query := "INSERT INTO check_logs (site_id, status_code, response_time_ms, is_available) VALUES (?, ?, ?, ?)"
+	_, err := r.db.Exec(query, log.SiteID, log.StatusCode, log.ResponseTimeMS, log.IsAvailable)
+	if err != nil {
+		return fmt.Errorf("Ошибка вставки чек-лога: %v", err)
+	}
+
+	return nil
 
 }

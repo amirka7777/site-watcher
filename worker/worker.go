@@ -47,18 +47,38 @@ func (w *Worker) CheckSiteInBackground(site models.Site) {
 	for range ticker.C {
 		log.Printf("[Воркер] Проверяю сайт %s...", site.URL)
 
+		startTime := time.Now()
+
 		res, err := http.Get(site.URL)
-		if err != nil {
-			log.Printf("❌ Сайт %s лег поспать (Ошибка: %v)", site.URL, err)
-			continue
+
+		duration := time.Since(startTime)
+		responseTimeMs := duration.Milliseconds()
+		checkLog := models.CheckLog{
+			SiteID: site.ID,
+			ResponseTimeMS: responseTimeMs,
 		}
 
-		res.Body.Close()
-
-		if res.StatusCode >= 200 && res.StatusCode < 300 {
-			log.Printf("Сайт %s работает (статус: %d)", site.URL, res.StatusCode)
+		if err != nil {
+			log.Printf("❌ Сайт %s лег поспать (Ошибка: %v)", site.URL, err)
+			checkLog.StatusCode = 503
+			checkLog.IsAvailable = false
 		} else {
-			log.Printf("Сайт %s вернул плохой статус-код: %d", site.URL, res.StatusCode)
+			res.Body.Close()
+
+			checkLog.StatusCode = res.StatusCode
+			checkLog.IsAvailable = res.StatusCode >= 200 && res.StatusCode < 300
+
+			if checkLog.IsAvailable {
+				log.Printf("Сайт %s работает (статус: %d, время: %d мс)", site.URL, res.StatusCode, responseTimeMs)
+			} else {
+				log.Printf("Сайт %s вернул плохой статус-код: %d", site.URL, res.StatusCode)
+			}
+
+		}
+
+		saveCheck := w.repo.SaveLog(&checkLog)
+		if saveCheck != nil {
+			log.Printf("Ошибка сохранения лога в БД для сайта %s: %v", site.URL, saveCheck)
 		}
 	}
 
