@@ -10,7 +10,6 @@ import (
 	"site-watcher/worker"
 )
 
-
 func main() {
 
 	db, err := database.InitDB("sites.db")
@@ -30,13 +29,12 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /sites", siteContr.CreateSiteHandler)
 	mux.HandleFunc("GET /sites", siteContr.GetSitesHandler)
+	mux.HandleFunc("GET /sites/logs", siteContr.GetLogsHandler)
 
 	log.Println("Сервер запущен на порту 8080")
 	err = http.ListenAndServe(":8080", mux)
 	if err != nil {
 		log.Fatalf("Ошибка при запуске сервера: %v", err)
 	}
-
-	
 
 }
